@@ -1,0 +1,161 @@
+import nest_asyncio
+nest_asyncio.apply()
+
+import discord
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+intents = discord.Intents.default()
+intents.messages = True
+intents.message_content = True
+intents.reactions = True
+
+client = discord.Client(intents = intents)
+guild = discord.Guild
+messages =  []
+
+result_txt_location = 'whitelisted_user.tsv'
+            
+scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"] #https://spreadsheets.google.com/feeds']
+credentials = ServiceAccountCredentials.from_json_keyfile_name('genuine-amulet-386508-e126616283cf.json', scope)
+gs_client = gspread.authorize(credentials)
+docid = "1BVg-WgsDEjembne02KQ7F7U3EQLq33BG7uuybmFAZXs"
+
+commands_channel = 1106832839615451208
+bot_id = 1106830556429012345
+print("Bot started")
+@client.event
+async def on_message(message):
+
+    if message.channel.id == commands_channel:    
+        
+        if message.content != "" and (message.author.id != bot_id): 
+            print(message.author.id)
+            messages.append(message.content)
+            
+            print("New message: " + message.content)
+            
+            ########################################
+            ########################################
+            ########################################
+            #
+            #   sync whitelisted_user from Google Cloud
+            #
+            ########################################
+            ########################################
+            ########################################              
+            spreadsheet = gs_client.open_by_key(docid)
+            
+            export_file = spreadsheet.export(format=gspread.utils.ExportFormat.TSV)
+            
+            f = open(result_txt_location, 'wb')
+            f.write(export_file)
+            f.close()
+            
+            ########################################
+            ########################################
+            ########################################
+            #
+            #   read data
+            #
+            ########################################
+            ########################################
+            ########################################           
+            uid=[]
+
+            with open(result_txt_location, 'r', encoding='utf8' ) as f:
+                for line in f:
+                    filtered_data = line.replace("\n","").split('\t')
+                    uid.append(filtered_data[0])   
+            
+            ########################################
+            ########################################
+            ########################################
+            #
+            #   verify input
+            #
+            ########################################
+            ########################################
+            ########################################
+            
+            try:
+                command = message.content.split(',')[0]
+                
+                if(command == 'add' or command == 'remove'):
+                    insert_data = message.content.split(',')[1]
+                    print(insert_data)
+                    
+                    if(not insert_data.isnumeric()):
+                        channel = client.get_channel(commands_channel)
+                        await channel.send("Invalid format! User id Should be an integer.")       
+                        
+                    else:
+                        ########################################
+                        ########################################
+                        ########################################
+                        #
+                        #  execute  command
+                        #
+                        ########################################
+                        ########################################
+                        ########################################
+                        if(command == "add"):
+                            uid.append(insert_data) 
+                        elif(command == "remove"):
+                            for count, user_id in enumerate(uid):
+                                if(insert_data == user_id):
+                                    del uid[count] 
+                                    
+                        ########################################
+                        ########################################
+                        ########################################
+                        #
+                        #   write to file (local)
+                        #
+                        ########################################
+                        ########################################
+                        ########################################                        
+                        count = 0
+                        with open(result_txt_location, 'w', encoding="utf8") as f:
+                            while count < len(uid):
+                                data = "".join([uid[count],'\n'])
+                                f.write(data)
+                                count+=1
+                                
+
+                        ########################################
+                        ########################################
+                        ########################################
+                        #
+                        #   write to cloud avatar_full_list
+                        #
+                        ########################################
+                        ########################################
+                        ########################################  
+                        content = open(result_txt_location, 'r', encoding="utf8").read()
+                        
+                        gs_client.import_csv(docid, content)
+                        
+                        channel = client.get_channel(commands_channel)
+                        await channel.send("Updated user whitelist!")
+                else:
+                    channel = client.get_channel(commands_channel)
+                    await channel.send("Invalid format! Should be add, uid or remove, uid")
+            except:
+                channel = client.get_channel(commands_channel)
+                await channel.send("Invalid format! Should be add, uid or remove, uid")
+                
+@client.event
+async def on_reaction_add(reaction, user):
+    print(reaction.emoji)
+    message = reaction.message # our embed
+
+    if message.channel.id == commands_channel: # checking if it's the same channel            
+        if(reaction.emoji == "❌"):        
+            #Logs
+            channel = client.get_channel(commands_channel)
+            await channel.send('Deleted message: '+reaction.message.content) 
+                    
+            await reaction.message.delete() #Remove original message   
+    
+client.run("MTE3NzIyMzA1NTk5NTU4ODYzOA.G5aVji.v-8JhIBQ4Ya_j9B8VL7O_SzIFOBk8AR-6dQabI")

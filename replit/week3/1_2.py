@@ -39,5 +39,7 @@ subject_score = { }
 subject_score = add_score(subject_score, '65010001', 'python', 50)
 print(subject_score)
 subject_score = add_score(subject_score, '65010001', 'calculus', 60)
+subject_score = add_score(subject_score, '65010002', 'python', 70)
+subject_score = add_score(subject_score, '65010002', 'calculus', 80)
 print(subject_score)
 print(calc_average_score(subject_score))

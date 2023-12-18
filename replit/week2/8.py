@@ -22,7 +22,7 @@ def date_diff(date_1, date_2):
   date_1 = list(map(int, date_1.split("-")))
   date_2 = list(map(int, date_2.split("-")))
 
-  return date_2[2] * 365 + day_of_year(date_2[0], date_2[1], date_2[2]) - date_1[2] * 365 - day_of_year(date_1[0], date_1[1], date_1[2]) + 1 + sum(1 for i in range(date_1[0], date_2[0]) if is_leap(i))
+  return date_2[2] * 365 + day_of_year(date_2[0], date_2[1], date_2[2]) - date_1[2] * 365 - day_of_year(date_1[0], date_1[1], date_1[2]) + 1 + sum(1 for i in range(date_1[2], date_2[2]) if is_leap(i) )
 
-print(date_diff("1-1-2018", "1-1-2020"))
-print(date_diff("25-12-1999", "9-3-2000"))  # 76
+# print(date_diff("1-1-2018", "1-1-2020"))
+# print(date_diff("25-12-1999", "9-3-2000"))  # 76

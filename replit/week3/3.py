@@ -12,7 +12,12 @@ return : False
 """
 
 def is_plusone_dictionary(d):
-    return all((list(d.keys())[i] + 1 == list(d.values())[i]) for i in range(len(d)))
+    #print({ (i*2) + list(d.keys())[0] : (i*2) + list(d.keys())[0]+1 for i in range(len(d))})
 
-print(is_plusone_dictionary({1:2, 3:4, 5:6, 7:8}))
-print(is_plusone_dictionary({1:2, 3:10, 5:6, 7:8}))
+    return { (i*2) + list(d.keys())[0] : (i*2) + list(d.keys())[0]+1 for i in range(len(d)) } == d
+    #return { list(d.keys())[i] : list(d.values())[i] for i in range(len(d)) } == { list(d.keys())[i] : list(d.values())[i] for i in range(len(d)) }
+    #return all((list(d.keys())[i] + 1 == list(d.values())[i]) for i in range(len(d)))
+
+# print(is_plusone_dictionary({1:2, 3:4, 5:6, 7:8}))
+print(is_plusone_dictionary({1:2, 3:4, 7:8, 9:10}))
+print(is_plusone_dictionary({3:4, 5:6, 7:8, 9:10}))

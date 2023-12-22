@@ -55,5 +55,10 @@ def update_records(record, id, property, value):
 
 
 print(record_collection)
-print(update_records(record_collection, 5439, "artist", "ABBA"))
+record_collection = update_records(record_collection, 5439, "artist", "ABBA")
+print("___________________________________________________________")
+def sort_inner_dicts(record):
+    sorted_record = {key: dict(sorted(value.items())) for key, value in record.items()}
+    return dict(sorted(sorted_record.items()))
 
+print(sort_inner_dicts(record_collection))

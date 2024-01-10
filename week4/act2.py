@@ -42,8 +42,8 @@ def main():
     student4 = Student(66011464, "tart")
     student5 = Student(66010437, "tur")
 
-    subject1 = Subject(01076106, "OOP-16", "16", 3)
-    subject2 = Subject(01076106, "OOP-17", "17", 3)
+    subject1 = Subject("01076106", "OOP-16", "16", 3)
+    subject2 = Subject("01076106", "OOP-17", "17", 3)
 
     teacher1 = Teacher(990001, "tana")
     teacher2 = Teacher(990002, "teacher2")
@@ -68,6 +68,6 @@ def main():
     
     print(subject1.teacher.teacher_name)
     print(get_student(990001))
-    print(get_subject(6600001))
+    print(get_subject(66010840))
 
 main()

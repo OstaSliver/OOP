@@ -4,3 +4,7 @@
 
 def add2list(lst1,lst2):
     return [lst1[i]+ lst2[i] for i in range(len(lst1))]
+
+x = [1,2,3,4,5]
+y = [10,20,30,40,50]
+print(add2list(x,y))

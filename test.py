@@ -1,3 +1,4 @@
-list_No = [1,2,3,4,5]
+a = int(input())
+b = int(input())
 
-print(list_No[0]+list_No[1])
+print(a+b)

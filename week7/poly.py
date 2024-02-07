@@ -3,7 +3,7 @@ class Bank:
     def __init__(self,name):
         self.__name=name
         self.__user_list = []
-        self.__card_list = []
+        # self.__card_list = []
         self.__atm_list = []
         self.__seller_list = []
     
@@ -35,6 +35,16 @@ class Bank:
                     return account
         return None
     
+    def search_account_from_account_no(self, account_no):
+        for user in self.__user_list:
+            for account in user.account_list:
+                if account.account_no == account_no:
+                    return account
+    
+    def search_seller(self, seller_name):
+        for seller in self.__seller_list:
+            if seller_name == seller.name:
+                return seller
 
 class User:
     def __init__(self, citizen_id, name):
@@ -58,6 +68,7 @@ class User:
             if account.account_no == account_no:
                 return account
         return None
+    
 
 class Account:
     def __init__(self, account_no, user, amount):
@@ -82,6 +93,26 @@ class Account:
     def transaction_list(self):
         return self.__transaction
     
+    def __add__(self, amount):
+        self.__amount += amount
+        self.__transaction.append(Transaction("Deposit", amount, self.__amount, None))
+
+    def __sub__(self, amount):
+        self.__amount -= amount
+        self.__transaction.append(Transaction("Withdraw", amount, self.__amount, None))
+    
+    def __irshift__(self, payload) :
+        amount = payload[0]
+        target_account = payload[1]
+        if not isinstance(amount, int) and not isinstance(amount, float and amount > self.__amount and amount < 0) and not isinstance(target_account, Account): return "Error"
+        self.__amount -= amount
+        target_account.__amount += amount
+        self.__transaction.append(Transaction("out_tranfer", amount, self.__amount, target_account))
+        target_account.__transaction.append(Transaction("come_tranfer", amount, target_account.__amount, self))
+    
+    def transfer(self,account, amount, target_account) :
+        account >>= (amount, target_account)
+
 
 class SavingAccount(Account):
 
@@ -129,6 +160,9 @@ class Card:
         return self.__card_no
     
     @property
+    def account(self):
+        return self.__account
+    @property
     def pin(self):
         return self.__pin
 
@@ -158,45 +192,53 @@ class ATM_machine:
         return None
 
     def deposit(self, account, amount):
-        if isinstance(account, SavingAccount):
-            account.amount += amount
-            account.transaction_list.append(Transaction("Deposit", amount, account.amount, None))
-            return True
-        return False
+        account += amount
+        self.__money += amount
+
 
     def withdraw(self, account, amount):
-        if isinstance(account, SavingAccount):
-            if amount <= self.withdraw_limit and amount <= account.amount:
-                account.amount -= amount
-                account.transaction_list.append(Transaction("Withdraw", amount, account.amount, None))
-                return True
-        return False
+        if amount <= self.withdraw_limit and amount <= self.__money:
+            account -= amount
+            self.__money -= amount
+        
 
     def transfer(self,account, amount, target_account):
-        if isinstance(account, SavingAccount):
-            if amount <= self.withdraw_limit and amount <= account.amount:
-                account.amount -= amount
-                account.transaction_list.append(Transaction("Transfer", amount, account.amount, target_account))
-                target_account.amount += amount
-                target_account.transaction_list.append(Transaction("Transfer", amount, target_account.amount, account))
-                return True
-        return False
-
+        account >> target_account, amount
 class Seller:
     def __init__(self,seller_no,name):
         self.__seller_no = seller_no
         self.__name = name
         self.__edc_list = []
     
-    def add_edc(self,edc):
-        self.__edc_list.append(edc)
+    def add_edc(self, edc_machine) :
+        if not isinstance(edc_machine, EDC_machine) : return "Error"
+        self.__edc_list.append(edc_machine)
+        
+    @property
+    def name(self) : return self.__name
+    
+    @property
+    def seller_no(self) : return self.__seller_no
 
+    def search_edc_from_no(self, edc_no) :
+        if not isinstance(edc_no, str) : return "Error"
+        return next(iter([edc for edc in self.__edc_list if edc.edc_no == edc_no]))
+    
+    def paid(self, account, amount, target_account) :
+       account >>= (amount, target_account)
+       
+        
+    
 class EDC_machine:
     def __init__(self,edc_no,seller):
         self.__edc_no = edc_no
         self.__seller = seller
-
-
+    @property
+    def edc_no(self) : return self.__edc_no
+    
+    def paid(self, debit_card, amount, target_account) :
+        tempAcc = debit_card.account
+        tempAcc >>= (amount, target_account)
 
 ##################################################################################
 
@@ -330,7 +372,7 @@ print("Harry's Account No : ",harry_account.account_no)
 print("Hermione's Account No : ", hermione_account.account_no)
 print("Harry account before transfer : ",harry_account.amount)
 print("Hermione account before transfer : ",hermione_account.amount)
-harry_account.transfer("0000", 10000, hermione_account)
+harry_account.transfer(harry_account, 10000, hermione_account)
 print("Harry account after transfer : ",harry_account.amount)
 print("Hermione account after transfer : ",hermione_account.amount)
 print("")
@@ -348,7 +390,7 @@ print("")
 # Hermione account after paid :  10500
 
 hermione_account = scb.search_account_from_account_no('0987654321')
-debit_card = hermione_account.get_card()
+debit_card = hermione_account.card
 kfc_account = scb.search_account_from_account_no('0000000321')
 kfc = scb.search_seller('KFC')
 edc = kfc.search_edc_from_no('2101')
@@ -392,3 +434,113 @@ print("")
 
 
 # Test case #7 : แสดง transaction ของ Hermione ทั้งหมด โดยใช้ for loop 
+
+# bank
+# 	-User_list
+# 	-ATM_list
+# 	+add_User()
+# 	+get_User()
+# 	+add_ATM()
+# 	+get_ATM()
+
+# User
+# 	-Citizen Id
+# 	-Name
+# 	-Account_list
+# 	+add_account()
+# 	+get_account()
+
+# ATM
+# 	-ATM ID
+# 	-balance
+# 	+insent_card()
+# 	+deposit()
+# 	+withdraw()
+# 	+transfer()
+
+# Account
+
+# 	-Account_id
+# 	-balance
+# 	-transaction_list
+# 	-ATM_Card
+
+# ATM_Card
+# 	-Account_id
+# 	-Pin Number
+
+# Transaction
+# 	-balance
+# 	-timestamp
+# 	-ATM_id
+# 	-transfer_account
+# 	-amount
+
+
+# bank<>--User
+# bank<>--ATM
+
+# Account<--User
+# Account-->ATM_Card
+# Account-->Transaction
+
+# เอาตัวอย่างมาแก้ไขตาม code ที่เขียนข้างบน
+
+# bank
+# 	-User_list
+# 	-ATM_list
+# 	+add_User()
+# 	+get_User()
+# 	+add_ATM()
+# 	+get_ATM()
+
+# User
+# 	-Citizen Id
+# 	-Name
+# 	-Account_list
+# 	+add_account()
+# 	+get_account()
+
+# ATM
+# 	-ATM ID
+# 	-balance
+# 	+insent_card()
+# 	+deposit()
+# 	+withdraw()
+# 	+transfer()
+
+# Account
+# 	-Account_id
+# 	-balance
+# 	-transaction_list
+# 	-ATM_Card
+
+# card
+# 	-Account_id
+# 	-Pin Number
+
+# ATM_Card
+# 	-fee
+
+# Debit_Card
+# 	-fee
+
+# Transaction
+# 	-balance
+# 	-timestamp
+# 	-ATM_id
+# 	-transfer_account
+# 	-amount
+
+
+# bank<>--User
+# bank<>--ATM
+# Account<--User
+# Account-->ATM_Card
+# Account-->Transaction
+
+
+
+
+
+
